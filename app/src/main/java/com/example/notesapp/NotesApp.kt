@@ -1,5 +1,6 @@
 package com.example.notesapp
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,7 +12,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
@@ -35,16 +35,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.Modifier
-import org.w3c.dom.Text
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -65,9 +64,13 @@ fun NotesApp() {
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-        NavHost(navController = navController, startDestination = "noteList") {
-            composable("noteList") { NoteListScreen(navController, noteList, snackbarHostState, coroutineScope) }
-            composable("addNote") { AddNoteScreen(navController, noteList, snackbarHostState, coroutineScope) }
+        NavHost(navController = navController, startDestination = "noteList", Modifier.padding(padding)) {
+            composable("noteList") {
+                NoteListScreen(navController, noteList, snackbarHostState, coroutineScope)
+            }
+            composable("addNote") {
+                AddNoteScreen(navController, noteList, snackbarHostState, coroutineScope)
+            }
             composable("editNote/{id}") { backStackEntry ->
                 val itemID = backStackEntry.arguments?.getString("id")?.toIntOrNull()
                 val noteItem = noteList.find { it.noteID == itemID }
@@ -82,7 +85,7 @@ fun NoteListScreen(
     navController: NavController,
     noteList: MutableList<NoteItem>,
     snackbarHostState: SnackbarHostState,
-    coroutineScope: CoroutineScope
+    coroutineScope: CoroutineScope,
 ) {
     Scaffold(
         topBar = {
@@ -169,7 +172,7 @@ fun AddNoteScreen(
         }
     ) { padding ->
         Column(
-            modifier = androidx.compose.ui.Modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
 //            horizontalAlignment = Alignment.CenterHorizontally,
@@ -195,7 +198,7 @@ fun AddNoteScreen(
             if (descriptionError != "") {
                 Text(text = descriptionError!!, color = androidx.compose.ui.graphics.Color.Red)
             }
-            Spacer(modifier = androidx.compose.ui.Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = {
                 titleError = when{
                     title.length > 50 -> "Title cannot exceed 50 characters"
@@ -246,7 +249,7 @@ fun EditNoteScreen(
 
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -255,7 +258,7 @@ fun EditNoteScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(padding),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
         ) {
