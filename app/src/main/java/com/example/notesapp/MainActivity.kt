@@ -29,68 +29,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
         setContent {
             NotesAppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Row(modifier = Modifier.fillMaxWidth()){
-                        Column(modifier =
-                        Modifier
-                            .padding(innerPadding)
-                            .background(Color.Red)
-                        ) {
-                            Text("hello")
-                            Text("world")
-                            Spacer(modifier = Modifier.height(20.dp))
-                            Text("button down there")
-                            Spacer(modifier = Modifier.height(20.dp))
-
-                            Button(onClick = {
-                                Toast.makeText(this@MainActivity, "Button Clicked", Toast.LENGTH_SHORT).show()
-                            }){
-                                Text("click me")
-                            }
-
-                        }
-                        Spacer(modifier = Modifier.padding(20.dp))
-                        Column(modifier =
-                        Modifier
-                            .padding(innerPadding)
-                            .background(Color.Red)
-                        ) {
-                            Text("hello")
-                            Text("world")
-                            Spacer(modifier = Modifier.height(20.dp))
-                            Text("button down there")
-                            Spacer(modifier = Modifier.height(20.dp))
-
-                            Button(onClick = {
-
-                            }){
-                                Text("click me")
-                            }
-
-                        }
-                    }
-
-                }
+                NotesApp()
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Wassup, $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    NotesAppTheme {
-        Greeting("Android")
-    }
-}
