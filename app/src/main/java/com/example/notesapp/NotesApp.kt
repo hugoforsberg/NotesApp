@@ -115,6 +115,8 @@ fun NoteListScreen(navController: NavController, noteList: MutableList<NoteItem>
 fun AddNoteScreen(navController: NavController, noteList: MutableList<NoteItem>) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+    var titleError by remember { mutableStateOf<String?>("") }
+    var descriptionError by remember { mutableStateOf<String?>("") }
 
     Scaffold(
         topBar = {
@@ -143,21 +145,48 @@ fun AddNoteScreen(navController: NavController, noteList: MutableList<NoteItem>)
         ) {
             TextField(
                 value = title,
-                onValueChange = { title = it },
-                label = { Text("Todo") }
+                onValueChange = {title = it},
+                label = { Text("Title") },
+                isError = titleError != ""
             )
-            Spacer(modifier = androidx.compose.ui.Modifier.height(16.dp))
+            if (titleError != "") {
+                Text(text = titleError!!, color = androidx.compose.ui.graphics.Color.Red)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
             TextField(
                 value = description,
-                onValueChange = { description = it },
-                label = { Text("Details") }
+                onValueChange = {description = it},
+                label = { Text("Description") },
+                isError = descriptionError != ""
             )
+            if (descriptionError != "") {
+                Text(text = descriptionError!!, color = androidx.compose.ui.graphics.Color.Red)
+            }
             Spacer(modifier = androidx.compose.ui.Modifier.height(16.dp))
             Button(onClick = {
-                if (title.isNotBlank() && description.isNotBlank()) {
-                    noteList.add(NoteItem(noteID = noteList.size, title = title, description = description))
-                    navController.popBackStack()
+                titleError = when{
+                    title.length > 50 -> "Title cannot exceed 50 characters"
+                    title.length < 3 -> "Title must be at least 3 characters"
+                    else -> ""
                 }
+                descriptionError = if (description.length > 120) {
+                    "Description cannot exceed 120 characters"
+                } else ""
+
+                if (titleError == "" && descriptionError == ""
+                    && title.isNotBlank() && description.isNotBlank()) {
+                    noteList.add(
+                        NoteItem(
+                            noteID = noteList.size,
+                            title = title,
+                            description = description
+                        )
+                    )
+                    navController.popBackStack()
+
+                }
+
             }) {
                 Text("Add Note")
             }
@@ -170,7 +199,8 @@ fun AddNoteScreen(navController: NavController, noteList: MutableList<NoteItem>)
 fun EditNoteScreen(navController: NavController, noteItem: NoteItem) {
     var title by remember { mutableStateOf(noteItem.title) }
     var description by remember { mutableStateOf(noteItem.description) }
-
+    var titleError by remember { mutableStateOf<String?>("") }
+    var descriptionError by remember { mutableStateOf<String?>("") }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -188,23 +218,43 @@ fun EditNoteScreen(navController: NavController, noteItem: NoteItem) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-        //horizontalAlignment = Alignment.CenterHorizontally,
-        //verticalArrangement = Arrangement.Center
+            //horizontalAlignment = Alignment.CenterHorizontally,
+            //verticalArrangement = Arrangement.Center
         ) {
             TextField(
                 value = title,
-                onValueChange = { title = it },
-                label = { Text("Title") }
+                onValueChange = { title = it},
+                label = { Text("Title") },
+                isError = titleError != ""
             )
+            if (titleError != "") {
+                Text(text = titleError!!, color = androidx.compose.ui.graphics.Color.Red)
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
             TextField(
                 value = description,
-                onValueChange = { description = it },
-                label = { Text("Description") }
+                onValueChange = {description = it},
+                label = { Text("Description") },
+                isError = descriptionError != ""
             )
+            if (descriptionError != ""){
+                Text(text = descriptionError!!, color = androidx.compose.ui.graphics.Color.Red)
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = {
-                if(title.isNotBlank() && description.isNotBlank()){
+                titleError = when{
+                    title.length > 50 -> "Title cannot exceed 50 characters"
+                    title.length < 3 -> "Title must be at least 3 characters"
+                    else -> ""
+                }
+                descriptionError = if (description.length > 120) {
+                    "Description cannot exceed 120 characters"
+                } else ""
+
+                if (titleError == "" && descriptionError == ""
+                    && title.isNotBlank() && description.isNotBlank()) {
                     noteItem.title = title
                     noteItem.description = description
                     navController.popBackStack()
