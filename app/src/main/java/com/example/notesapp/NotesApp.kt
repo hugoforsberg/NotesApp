@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -124,9 +125,9 @@ fun NoteListScreen(
                                             message = "Note deleted",
                                             actionLabel = "Undo"
                                         )
-                                    if(snackbarResult == SnackbarResult.ActionPerformed) {
-                                        noteList.add(removedNote)
-                                    }
+                                        if(snackbarResult == SnackbarResult.ActionPerformed) {
+                                            noteList.add(removedNote)
+                                        }
                                     }
                                 }
                             ) {
@@ -160,10 +161,8 @@ fun AddNoteScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = {
-                            if (title.isNotBlank() && description.isNotBlank()) {
-                                noteList.add(NoteItem(noteID = noteList.size, title = title, description = description))
-                                navController.popBackStack()
-                            }
+                            navController.popBackStack()
+
                         }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
@@ -175,8 +174,8 @@ fun AddNoteScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-//            horizontalAlignment = Alignment.CenterHorizontally,
-//            verticalArrangement = Arrangement.Center
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             TextField(
                 value = title,
@@ -246,7 +245,6 @@ fun EditNoteScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Edit Note") },
-
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -259,8 +257,8 @@ fun EditNoteScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             TextField(
                 value = title,
@@ -277,7 +275,7 @@ fun EditNoteScreen(
                 value = description,
                 onValueChange = {description = it},
                 label = { Text("Description") },
-                isError = descriptionError != ""
+                isError = descriptionError != "",
             )
             if (descriptionError != ""){
                 Text(text = descriptionError!!, color = androidx.compose.ui.graphics.Color.Red)
@@ -300,7 +298,7 @@ fun EditNoteScreen(
                     noteItem.description = description
                     navController.popBackStack()
                     coroutineScope.launch {
-                        snackbarHostState.showSnackbar("Note successfully updated")
+                        snackbarHostState.showSnackbar("Note edited")
                     }
                 }
             }){
