@@ -41,6 +41,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.Modifier
 import org.w3c.dom.Text
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 data class NoteItem(
     val noteID: Int,
@@ -50,24 +56,34 @@ data class NoteItem(
 )
 
 @Composable
-fun NotesApp(){
+fun NotesApp() {
     val navController = rememberNavController()
     val noteList = remember { mutableStateListOf<NoteItem>() }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
-    NavHost(navController = navController, startDestination = "noteList"){
-        composable("noteList"){NoteListScreen(navController, noteList )}
-        composable("addNote"){AddNoteScreen(navController, noteList )}
-        composable("editNote/{id}"){ backStackEntry ->
-            val itemID = backStackEntry.arguments?.getString("id")?.toIntOrNull()
-            val noteItem = noteList.find { it.noteID == itemID }
-            noteItem?.let { EditNoteScreen(navController, it) }
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
+        NavHost(navController = navController, startDestination = "noteList") {
+            composable("noteList") { NoteListScreen(navController, noteList, snackbarHostState, coroutineScope) }
+            composable("addNote") { AddNoteScreen(navController, noteList, snackbarHostState, coroutineScope) }
+            composable("editNote/{id}") { backStackEntry ->
+                val itemID = backStackEntry.arguments?.getString("id")?.toIntOrNull()
+                val noteItem = noteList.find { it.noteID == itemID }
+                noteItem?.let { EditNoteScreen(navController, it, snackbarHostState, coroutineScope) }
+            }
         }
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NoteListScreen(navController: NavController, noteList: MutableList<NoteItem>) {
+fun NoteListScreen(
+    navController: NavController,
+    noteList: MutableList<NoteItem>,
+    snackbarHostState: SnackbarHostState,
+    coroutineScope: CoroutineScope
+) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Note List") })
@@ -78,7 +94,7 @@ fun NoteListScreen(navController: NavController, noteList: MutableList<NoteItem>
             }
         }
     ) { padding ->
-        LazyColumn(modifier = androidx.compose.ui.Modifier.padding(padding)) {
+        LazyColumn(modifier = Modifier.padding(padding)) {
             items(noteList) { item ->
                 ListItem(
                     leadingContent = {
@@ -97,7 +113,19 @@ fun NoteListScreen(navController: NavController, noteList: MutableList<NoteItem>
                                 Icon(Icons.Filled.Edit, contentDescription = "Edit Note")
                             }
                             IconButton(
-                                onClick = { noteList.remove(item) }
+                                onClick = {
+                                    val removedNote = item
+                                    noteList.remove(item)
+                                    coroutineScope.launch {
+                                        val snackbarResult = snackbarHostState.showSnackbar(
+                                            message = "Note deleted",
+                                            actionLabel = "Undo"
+                                        )
+                                    if(snackbarResult == SnackbarResult.ActionPerformed) {
+                                        noteList.add(removedNote)
+                                    }
+                                    }
+                                }
                             ) {
                                 Icon(Icons.Filled.Delete, contentDescription = "Delete Note")
                             }
@@ -112,7 +140,11 @@ fun NoteListScreen(navController: NavController, noteList: MutableList<NoteItem>
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddNoteScreen(navController: NavController, noteList: MutableList<NoteItem>) {
+fun AddNoteScreen(
+    navController: NavController,
+    noteList: MutableList<NoteItem>,
+    snackbarHostState: SnackbarHostState,
+    coroutineScope: CoroutineScope) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var titleError by remember { mutableStateOf<String?>("") }
@@ -184,7 +216,9 @@ fun AddNoteScreen(navController: NavController, noteList: MutableList<NoteItem>)
                         )
                     )
                     navController.popBackStack()
-
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("Note added")
+                    }
                 }
 
             }) {
@@ -196,7 +230,11 @@ fun AddNoteScreen(navController: NavController, noteList: MutableList<NoteItem>)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditNoteScreen(navController: NavController, noteItem: NoteItem) {
+fun EditNoteScreen(
+    navController: NavController,
+    noteItem: NoteItem,
+    snackbarHostState: SnackbarHostState,
+    coroutineScope: CoroutineScope) {
     var title by remember { mutableStateOf(noteItem.title) }
     var description by remember { mutableStateOf(noteItem.description) }
     var titleError by remember { mutableStateOf<String?>("") }
@@ -218,8 +256,8 @@ fun EditNoteScreen(navController: NavController, noteItem: NoteItem) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-            //horizontalAlignment = Alignment.CenterHorizontally,
-            //verticalArrangement = Arrangement.Center
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
         ) {
             TextField(
                 value = title,
@@ -258,6 +296,9 @@ fun EditNoteScreen(navController: NavController, noteItem: NoteItem) {
                     noteItem.title = title
                     noteItem.description = description
                     navController.popBackStack()
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("Note successfully updated")
+                    }
                 }
             }){
                 Text("Save Note")
