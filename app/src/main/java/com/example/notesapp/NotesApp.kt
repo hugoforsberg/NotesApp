@@ -1,11 +1,9 @@
 package com.example.notesapp
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
@@ -47,9 +46,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 data class NoteItem(
-    val noteID: Int,
+    val noteID: String = UUID.randomUUID().toString(), //Random uuid för unikt id
     var title: String,
     var description: String,
     val check: MutableState<Boolean> = mutableStateOf(false)
@@ -64,8 +64,8 @@ fun NotesApp() {
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
-        NavHost(navController = navController, startDestination = "noteList", Modifier.padding(padding)) {
+    ) { paddingValues ->
+        NavHost(navController = navController, startDestination = "noteList", Modifier.padding(paddingValues)) {
             composable("noteList") {
                 NoteListScreen(navController, noteList, snackbarHostState, coroutineScope)
             }
@@ -73,7 +73,7 @@ fun NotesApp() {
                 AddNoteScreen(navController, noteList, snackbarHostState, coroutineScope)
             }
             composable("editNote/{id}") { backStackEntry ->
-                val itemID = backStackEntry.arguments?.getString("id")?.toIntOrNull()
+                val itemID = backStackEntry.arguments?.getString("id")
                 val noteItem = noteList.find { it.noteID == itemID }
                 noteItem?.let { EditNoteScreen(navController, it, snackbarHostState, coroutineScope) }
             }
@@ -97,8 +97,8 @@ fun NoteListScreen(
                 Icon(Icons.Filled.Add, contentDescription = "Add Note")
             }
         }
-    ) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding)) {
+    ) { paddingValues ->
+        LazyColumn(modifier = Modifier.padding(paddingValues)) {
             items(noteList) { item ->
                 ListItem(
                     leadingContent = {
@@ -110,7 +110,7 @@ fun NoteListScreen(
                     headlineContent = { Text(item.title) },
                     supportingContent = { Text(item.description)},
                     trailingContent = {
-                        Row {
+                        Row (modifier = Modifier.padding(end = 50.dp)){
                             IconButton(
                                 onClick = { navController.navigate("editNote/${item.noteID}") }
                             ) {
@@ -123,7 +123,8 @@ fun NoteListScreen(
                                     coroutineScope.launch {
                                         val snackbarResult = snackbarHostState.showSnackbar(
                                             message = "Note deleted",
-                                            actionLabel = "Undo"
+                                            actionLabel = "Undo",
+                                            duration = SnackbarDuration.Short
                                         )
                                         if(snackbarResult == SnackbarResult.ActionPerformed) {
                                             noteList.add(removedNote)
@@ -162,7 +163,6 @@ fun AddNoteScreen(
                     IconButton(
                         onClick = {
                             navController.popBackStack()
-
                         }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
@@ -175,7 +175,7 @@ fun AddNoteScreen(
                 .fillMaxSize()
                 .padding(padding),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            //verticalArrangement = Arrangement.Center
         ) {
             TextField(
                 value = title,
@@ -209,13 +209,9 @@ fun AddNoteScreen(
                 } else ""
 
                 if (titleError == "" && descriptionError == ""
-                    && title.isNotBlank() && description.isNotBlank()) {
+                    && title.isNotBlank()) {
                     noteList.add(
-                        NoteItem(
-                            noteID = noteList.size,
-                            title = title,
-                            description = description
-                        )
+                        NoteItem(title = title, description = description)
                     )
                     navController.popBackStack()
                     coroutineScope.launch {
@@ -258,7 +254,7 @@ fun EditNoteScreen(
                 .fillMaxSize()
                 .padding(padding),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            // verticalArrangement = Arrangement.Center
         ) {
             TextField(
                 value = title,
@@ -293,7 +289,7 @@ fun EditNoteScreen(
                 } else ""
 
                 if (titleError == "" && descriptionError == ""
-                    && title.isNotBlank() && description.isNotBlank()) {
+                    && title.isNotBlank()) {
                     noteItem.title = title
                     noteItem.description = description
                     navController.popBackStack()
